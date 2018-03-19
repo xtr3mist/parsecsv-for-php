@@ -5,6 +5,7 @@ namespace ParseCsv;
 use ParseCsv\enums\FileProcessingModeEnum;
 use ParseCsv\enums\SortEnum;
 use ParseCsv\extensions\DatatypeTrait;
+use Illuminate\Support\Collection;
 
 class Csv {
 
@@ -1309,5 +1310,49 @@ class Csv {
         // capture most probable delimiter
         ksort($filtered);
         $this->delimiter = reset($filtered);
+    }
+
+    /**
+     * getCollection
+     * Returns a Illuminate/Collection object
+     * This may prove to be helpful to people who want to 
+     * create macros, and or use map functions
+     *
+     * @access public
+     * @link https://laravel.com/docs/5.6/collections
+     *
+     * @throws ErrorException - If the Illuminate\Support\Collection class is not found
+     * @throws MixedException - If the new Collection class throws an exception
+     * @throws ErrorException - If the collection object is null after initing the collection class
+     * 
+     * @return Illuminate\Support\Collection
+     */
+    public function getCollection() {
+        //start a null collection object - we will check this later
+        $collection = null;
+
+        //does the Illuminate\Support\Collection class exists?
+        //this uses the autoloader to try to determine
+        //@see http://php.net/manual/en/function.class-exists.php
+        if (class_exists('Illuminate\Support\Collection',true)==false) {
+            throw new \ErrorException('It would appear you have not installed the illuminate/support package!');
+        }
+
+        //now try creating the collection
+        try {
+            $collection = new Collection($this->data);
+        } catch (\Exception $e) {
+            //if an exception was raised rethrow it
+            throw $e;
+        }
+
+        //if the collection object is still null something horrible happened
+        if (is_null($collection)) {
+            //now a new ErrorException
+            throw new \ErrorException('The collection returned a null object!');
+        }
+
+        //everything went well so return the collection
+        return $collection;
     }
 }
